@@ -42,8 +42,11 @@ with st.container():
         hole=0.4
     )
     
+  # 마우스 오버(Hover) 시 편수와 비율이 보이도록 설정하고, 튀어나오는 텍스트 숨기기
     fig1.update_traces(
+        textposition='inside',  # 텍스트를 조각 안쪽에만 표시 (자리가 좁으면 자동 숨김)
         hovertemplate="<b>%{label}</b><br>편수: %{value}편<br>비율: %{percent}<extra></extra>"
+    )
     )
 
     st.plotly_chart(fig1, use_container_width=True)
