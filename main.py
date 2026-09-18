@@ -17,6 +17,9 @@ def load_data():
     url = "https://raw.githubusercontent.com/greatsong/modudata/main/data/kobis_movies.csv"
     df = pd.read_csv(url)
     
+    # [수정된 부분] 장르가 비어있는(결측치) 경우 '알 수 없음'으로 채우기
+    df['genre'] = df['genre'].fillna('알 수 없음')
+    
     # 장르 열 전처리: 세로막대 기호(|)로 나뉘어 있으면 첫 번째 장르만 사용
     df['genre'] = df['genre'].astype(str).apply(lambda x: x.split('|')[0].strip() if pd.notna(x) and '|' in x else str(x).strip())
     return df
@@ -42,7 +45,7 @@ with st.container():
         hole=0.4
     )
     
-    # [수정된 부분] 텍스트가 밖으로 튀어나오지 않도록 안쪽에만 표시되게 설정
+    # 텍스트가 밖으로 튀어나오지 않도록 안쪽에만 표시되게 설정
     fig1.update_traces(
         textposition='inside',
         hovertemplate="<b>%{label}</b><br>편수: %{value}편<br>비율: %{percent}<extra></extra>"
@@ -166,7 +169,7 @@ with st.container():
     
     st.plotly_chart(fig5, use_container_width=True)
 
-    st.info("💡 **이 그래프로 알 수 있는 것:** 주요 장르들의 일반적인 관객 수 범위(상자의 크기와 위치)를 비교할 수 있으며, 일반적인 범위를 벗어나 예외적으로 큰 흥행을 기록한 영화(상자 밖의 점)들을 파악할 수 있습니다.")
+    st.info("💡 **이 그래프로 알 수 있는 것:** 주요 장르들의 일반적인 관객 수 범위(상자의 크기와 위치)를 비교할 수 있으며, 일반적인 범위를 벗어나 예외적으로 큰 흥행을 기록한 영화(상자 밖의 점)들을 파악할 수 파악할 수 있습니다.")
 
 
 # -------------------------------------------------------------------
@@ -221,6 +224,7 @@ with st.container():
     df_sunburst['movie_count'] = 1
     
     df_sunburst['nation'] = df_sunburst['nation'].fillna('알 수 없음')
+    # 구역 7 내에서도 결측치 처리 (이미 위에서 했지만, 안전을 위해 유지)
     df_sunburst['genre'] = df_sunburst['genre'].fillna('알 수 없음')
     
     fig7 = px.sunburst(
