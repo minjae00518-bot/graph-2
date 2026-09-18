@@ -17,11 +17,15 @@ def load_data():
     url = "https://raw.githubusercontent.com/greatsong/modudata/main/data/kobis_movies.csv"
     df = pd.read_csv(url)
     
-    # [수정된 부분] 장르가 비어있는(결측치) 경우 '알 수 없음'으로 채우기
-    df['genre'] = df['genre'].fillna('알 수 없음')
+    # [수정된 부분] 장르가 비어있는(결측치) 행(데이터)을 아예 삭제합니다.
+    df = df.dropna(subset=['genre'])
     
     # 장르 열 전처리: 세로막대 기호(|)로 나뉘어 있으면 첫 번째 장르만 사용
     df['genre'] = df['genre'].astype(str).apply(lambda x: x.split('|')[0].strip() if pd.notna(x) and '|' in x else str(x).strip())
+    
+    # [수정된 부분] 혹시라도 문자열 'nan'으로 바뀐 데이터가 남아있다면 그것도 제외합니다.
+    df = df[df['genre'] != 'nan']
+    
     return df
 
 df = load_data()
@@ -169,7 +173,7 @@ with st.container():
     
     st.plotly_chart(fig5, use_container_width=True)
 
-    st.info("💡 **이 그래프로 알 수 있는 것:** 주요 장르들의 일반적인 관객 수 범위(상자의 크기와 위치)를 비교할 수 있으며, 일반적인 범위를 벗어나 예외적으로 큰 흥행을 기록한 영화(상자 밖의 점)들을 파악할 수 파악할 수 있습니다.")
+    st.info("💡 **이 그래프로 알 수 있는 것:** 주요 장르들의 일반적인 관객 수 범위(상자의 크기와 위치)를 비교할 수 있으며, 일반적인 범위를 벗어나 예외적으로 큰 흥행을 기록한 영화(상자 밖의 점)들을 파악할 수 있습니다.")
 
 
 # -------------------------------------------------------------------
@@ -223,9 +227,8 @@ with st.container():
     df_sunburst = df.copy()
     df_sunburst['movie_count'] = 1
     
+    # 국가 데이터가 없는 경우만 '알 수 없음'으로 처리
     df_sunburst['nation'] = df_sunburst['nation'].fillna('알 수 없음')
-    # 구역 7 내에서도 결측치 처리 (이미 위에서 했지만, 안전을 위해 유지)
-    df_sunburst['genre'] = df_sunburst['genre'].fillna('알 수 없음')
     
     fig7 = px.sunburst(
         df_sunburst,
