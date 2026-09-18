@@ -42,11 +42,10 @@ with st.container():
         hole=0.4
     )
     
-  # 마우스 오버(Hover) 시 편수와 비율이 보이도록 설정하고, 튀어나오는 텍스트 숨기기
+    # [수정된 부분] 텍스트가 밖으로 튀어나오지 않도록 안쪽에만 표시되게 설정
     fig1.update_traces(
-        textposition='inside',  # 텍스트를 조각 안쪽에만 표시 (자리가 좁으면 자동 숨김)
+        textposition='inside',
         hovertemplate="<b>%{label}</b><br>편수: %{value}편<br>비율: %{percent}<extra></extra>"
-    )
     )
 
     st.plotly_chart(fig1, use_container_width=True)
@@ -251,17 +250,15 @@ with st.container():
     
     # 1. 개봉일 데이터(openDt)에서 월(month) 추출
     df_month = df.copy()
-    # 8자리 숫자(예: 20230514)를 datetime 형식으로 변환하여 월만 추출
     df_month['month'] = pd.to_datetime(df_month['openDt'], format='%Y%m%d', errors='coerce').dt.month
     
-    # 월 정보가 없는 결측치 제거 후 정수형으로 변환
     df_month = df_month.dropna(subset=['month'])
     df_month['month'] = df_month['month'].astype(int)
     
     # 2. 월별 영화 개봉 편수 집계
     monthly_stats = df_month.groupby('month').agg(
         movie_count=('movieNm', 'count')
-    ).reindex(range(1, 13), fill_value=0).reset_index() # 1월~12월 모든 달 표시
+    ).reindex(range(1, 13), fill_value=0).reset_index() 
     
     monthly_stats['month_str'] = monthly_stats['month'].astype(str) + '월'
     
@@ -272,10 +269,9 @@ with st.container():
         y='movie_count',
         title='월별 개봉 편수 흐름은 어떻게 되는가?',
         labels={'month_str': '개봉 월', 'movie_count': '개봉 편수 (편)'},
-        text_auto=True # 막대 위에 숫자 표시
+        text_auto=True 
     )
     
-    # 색상 및 마우스 오버 툴팁 설정
     fig8.update_traces(
         marker_color="#636EFA",
         hovertemplate="<b>%{x}</b><br>개봉 편수: %{y}편<extra></extra>"
