@@ -44,14 +44,12 @@ with st.container():
         hole=0.4
     )
     
-    # 마우스 오버(Hover) 시 편수와 비율이 보이도록 설정
     fig1.update_traces(
         hovertemplate="<b>%{label}</b><br>편수: %{value}편<br>비율: %{percent}<extra></extra>"
     )
 
     st.plotly_chart(fig1, use_container_width=True)
 
-    # 그래프 하단 해석 구역
     st.info("💡 **이 그래프로 알 수 있는 것:** 상위 몇 개 장르가 전체 개봉작 중 상당한 비중을 차지하고 있어, 특정 장르 선호 현상이 뚜렷하게 나타남을 알 수 있습니다.")
 
 
@@ -63,7 +61,6 @@ st.divider()
 with st.container():
     st.subheader("📌 장르별 총 관객 수 및 세부 영화")
     
-    # 플롯리 트리맵 작성
     fig2 = px.treemap(
         df, 
         path=['genre', 'movieNm'], 
@@ -88,7 +85,6 @@ st.divider()
 with st.container():
     st.subheader("📌 총 관객 수 분포")
     
-    # 플롯리 히스토그램 작성
     fig3 = px.histogram(
         df, 
         x='total_audi', 
@@ -103,9 +99,7 @@ with st.container():
 
     st.plotly_chart(fig3, use_container_width=True)
 
-    # 관객이 가장 많은 영화 및 몰려있는 구간 동적 계산
     max_movie_name = df.loc[df['total_audi'].idxmax(), 'movieNm']
-    
     counts, bins = np.histogram(df['total_audi'].dropna(), bins=20)
     max_bin_idx = counts.argmax()
     min_audi_range = int(bins[max_bin_idx])
@@ -122,13 +116,12 @@ st.divider()
 with st.container():
     st.subheader("📌 개봉일 스크린수와 총 관객 수의 관계")
     
-    # 플롯리 산점도 작성
     fig4 = px.scatter(
         df, 
         x='first_scrn', 
         y='total_audi', 
-        color='genre',          # 장르별 색상 다르게
-        hover_name='movieNm',   # 마우스 오버 시 영화명 표시
+        color='genre',          
+        hover_name='movieNm',   
         title='개봉일 스크린수 vs 총 관객 수 (산점도)',
         labels={
             'first_scrn': '개봉일 스크린수 (개)', 
@@ -137,7 +130,6 @@ with st.container():
         }
     )
     
-    # 툴팁(마우스 오버) 세부 설정
     fig4.update_traces(
         hovertemplate="<b>%{hovertext}</b><br>개봉일 스크린수: %{x}개<br>총 관객 수: %{y}명<extra></extra>"
     )
@@ -155,12 +147,10 @@ st.divider()
 with st.container():
     st.subheader("📌 주요 장르별 총 관객 수 분포")
     
-    # 영화가 10편 이상인 장르만 필터링
     genre_counts_series = df['genre'].value_counts()
     major_genres = genre_counts_series[genre_counts_series >= 10].index
     df_box = df[df['genre'].isin(major_genres)]
     
-    # 플롯리 상자 그림 작성
     fig5 = px.box(
         df_box, 
         x='genre', 
@@ -187,12 +177,11 @@ st.divider()
 with st.container():
     st.subheader("📌 초반 화력과 최종 흥행의 관계 (버블 그래프)")
     
-    # 플롯리 버블 그래프 작성
     fig6 = px.scatter(
         df, 
         x='first_scrn', 
         y='total_audi', 
-        size='first_week_audi', # 점 크기 (버블)
+        size='first_week_audi', 
         color='genre',          
         hover_name='movieNm',   
         custom_data=['first_week_audi'], 
@@ -228,11 +217,13 @@ st.divider()
 with st.container():
     st.subheader("📌 제작 국가 및 장르 계층 분포 (선버스트 그래프)")
     
-    # 영화 편수를 계산하기 위해 임시 컬럼 생성
     df_sunburst = df.copy()
     df_sunburst['movie_count'] = 1
     
-    # 플롯리 선버스트 그래프 작성 (국가 -> 장르 순서)
+    # [수정된 부분] 결측치(NaN) 때문에 발생하는 오류 방지를 위해 '알 수 없음'으로 채우기
+    df_sunburst['nation'] = df_sunburst['nation'].fillna('알 수 없음')
+    df_sunburst['genre'] = df_sunburst['genre'].fillna('알 수 없음')
+    
     fig7 = px.sunburst(
         df_sunburst,
         path=['nation', 'genre'],
@@ -241,7 +232,6 @@ with st.container():
         labels={'nation': '제작 국가', 'genre': '장르'}
     )
     
-    # 마우스 오버 시 영화 편수가 표시되도록 설정
     fig7.update_traces(
         hovertemplate="<b>%{label}</b><br>영화 편수: %{value}편<extra></extra>"
     )
