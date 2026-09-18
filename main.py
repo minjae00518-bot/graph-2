@@ -17,13 +17,13 @@ def load_data():
     url = "https://raw.githubusercontent.com/greatsong/modudata/main/data/kobis_movies.csv"
     df = pd.read_csv(url)
     
-    # [수정된 부분] 장르가 비어있는(결측치) 행(데이터)을 아예 삭제합니다.
+    # 장르가 비어있는(결측치) 행(데이터)을 아예 삭제합니다.
     df = df.dropna(subset=['genre'])
     
     # 장르 열 전처리: 세로막대 기호(|)로 나뉘어 있으면 첫 번째 장르만 사용
     df['genre'] = df['genre'].astype(str).apply(lambda x: x.split('|')[0].strip() if pd.notna(x) and '|' in x else str(x).strip())
     
-    # [수정된 부분] 혹시라도 문자열 'nan'으로 바뀐 데이터가 남아있다면 그것도 제외합니다.
+    # 혹시라도 문자열 'nan'으로 바뀐 데이터가 남아있다면 그것도 제외합니다.
     df = df[df['genre'] != 'nan']
     
     return df
@@ -92,27 +92,31 @@ st.divider()
 with st.container():
     st.subheader("📌 총 관객 수 분포")
     
+    # [수정된 부분] 총 관객 수를 10000으로 나누어 '만 명' 단위의 새 열 생성
+    df_hist = df.copy()
+    df_hist['total_audi_man'] = df_hist['total_audi'] / 10000
+
     fig3 = px.histogram(
-        df, 
-        x='total_audi', 
+        df_hist, 
+        x='total_audi_man', 
         nbins=20,
-        title='총 관객 수 히스토그램',
-        labels={'total_audi': '총 관객 수'}
+        title='총 관객 수 히스토그램 (단위: 만 명)',
+        labels={'total_audi_man': '총 관객 수 (만 명)'}
     )
     
     fig3.update_traces(
-        hovertemplate="총 관객 수 범위: %{x}<br>영화 편수: %{y}편<extra></extra>"
+        hovertemplate="총 관객 수 범위: %{x}만 명<br>영화 편수: %{y}편<extra></extra>"
     )
 
     st.plotly_chart(fig3, use_container_width=True)
 
-    max_movie_name = df.loc[df['total_audi'].idxmax(), 'movieNm']
-    counts, bins = np.histogram(df['total_audi'].dropna(), bins=20)
+    max_movie_name = df_hist.loc[df_hist['total_audi'].idxmax(), 'movieNm']
+    counts, bins = np.histogram(df_hist['total_audi_man'].dropna(), bins=20)
     max_bin_idx = counts.argmax()
     min_audi_range = int(bins[max_bin_idx])
     max_audi_range = int(bins[max_bin_idx + 1])
 
-    st.info(f"💡 **이 그래프로 알 수 있는 것:** 대부분의 영화가 **{min_audi_range:,}명 ~ {max_audi_range:,}명** 구간에 몰려 있으며, 가장 관객이 많은 영화는 **'{max_movie_name}'**입니다.")
+    st.info(f"💡 **이 그래프로 알 수 있는 것:** 대부분의 영화가 **{min_audi_range:,}만 명 ~ {max_audi_range:,}만 명** 구간에 몰려 있으며, 가장 관객이 많은 영화는 **'{max_movie_name}'**입니다.")
 
 
 # -------------------------------------------------------------------
