@@ -2,8 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 
 # 페이지 기본 설정
 st.set_page_config(
@@ -241,12 +239,12 @@ with st.container():
 
 
 # -------------------------------------------------------------------
-# 구역 8: 월별 개봉 편수와 관객 수 흐름 (이중축 차트)
+# 구역 8: 월별 개봉 편수 흐름 (막대 그래프)
 # -------------------------------------------------------------------
 st.divider()
 
 with st.container():
-    st.subheader("📌 질문: 월별 개봉 편수와 관객 수 흐름은 어떻게 되는가?")
+    st.subheader("📌 질문: 월별 개봉 편수 흐름은 어떻게 되는가?")
     
     # 1. 개봉일 데이터(openDt)에서 월(month) 추출
     df_month = df.copy()
@@ -257,57 +255,31 @@ with st.container():
     df_month = df_month.dropna(subset=['month'])
     df_month['month'] = df_month['month'].astype(int)
     
-    # 2. 월별 영화 개봉 편수와 총 관객 수 집계
+    # 2. 월별 영화 개봉 편수 집계
     monthly_stats = df_month.groupby('month').agg(
-        movie_count=('movieNm', 'count'),
-        total_audi=('total_audi', 'sum')
+        movie_count=('movieNm', 'count')
     ).reindex(range(1, 13), fill_value=0).reset_index() # 1월~12월 모든 달 표시
     
     monthly_stats['month_str'] = monthly_stats['month'].astype(str) + '월'
     
-    # 3. 플롯리 이중축 차트 생성 (막대 + 꺾은선)
-    fig8 = make_subplots(specs=[[{"secondary_y": True}]])
-    
-    # 첫 번째 Y축 (왼쪽): 월별 개봉 편수 (막대그래프)
-    fig8.add_trace(
-        go.Bar(
-            x=monthly_stats['month_str'], 
-            y=monthly_stats['movie_count'], 
-            name="개봉 편수", 
-            marker_color="#636EFA",
-            hovertemplate="%{x}<br>개봉 편수: %{y}편<extra></extra>"
-        ),
-        secondary_y=False,
+    # 3. 플롯리 막대 그래프 생성 (단일 지표)
+    fig8 = px.bar(
+        monthly_stats,
+        x='month_str',
+        y='movie_count',
+        title='월별 개봉 편수 흐름은 어떻게 되는가?',
+        labels={'month_str': '개봉 월', 'movie_count': '개봉 편수 (편)'},
+        text_auto=True # 막대 위에 숫자 표시
     )
     
-    # 두 번째 Y축 (오른쪽): 월별 총 관객 수 (꺾은선그래프 - 흐름 비교용)
-    fig8.add_trace(
-        go.Scatter(
-            x=monthly_stats['month_str'], 
-            y=monthly_stats['total_audi'], 
-            name="총 관객 수", 
-            mode='lines+markers',
-            marker_color="#EF553B",
-            line=dict(width=3),
-            marker=dict(size=8),
-            hovertemplate="%{x}<br>총 관객 수: %{y:,.0f}명<extra></extra>"
-        ),
-        secondary_y=True,
+    # 색상 및 마우스 오버 툴팁 설정
+    fig8.update_traces(
+        marker_color="#636EFA",
+        hovertemplate="<b>%{x}</b><br>개봉 편수: %{y}편<extra></extra>"
     )
-    
-    # 레이아웃 세부 설정
-    fig8.update_layout(
-        title_text='월별 개봉 편수와 관객 수 흐름은 어떻게 되는가?',
-        hovermode="x unified", # 마우스를 올리면 두 지표가 동시에 보이도록 설정
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-    )
-    
-    # Y축 이름 설정
-    fig8.update_yaxes(title_text="개봉 편수 (편)", secondary_y=False)
-    fig8.update_yaxes(title_text="총 관객 수 (명)", secondary_y=True)
     
     st.plotly_chart(fig8, use_container_width=True)
 
-    st.info("💡 **이 그래프로 알 수 있는 것:** 개봉하는 영화 편수가 많은 달(막대)과 실제로 관객이 많이 극장을 찾는 달(선)의 차이를 비교하여, 특정 성수기(여름 방학, 명절 등)의 관객 쏠림 현상을 시계열 흐름으로 확인할 수 있습니다.")
+    st.info("💡 **이 그래프로 알 수 있는 것:** 일 년 중 어느 달에 새로운 영화가 가장 많이 극장에 걸리는지 직관적으로 확인할 수 있습니다.")
 
 st.divider()
